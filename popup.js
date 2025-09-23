@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     updateInterface();
     checkCookieOnLoad();
+    // Tự động check-in ngay khi mở popup
+    chrome.runtime.sendMessage({ type: 'RUN_CHECKINS' });
 });
 
 /**

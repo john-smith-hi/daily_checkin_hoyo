@@ -162,9 +162,15 @@ async function performCheckins() {
             }
 
             try {
-                const resp = await fetch(cfg.url, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+                // Thêm timeout cho fetch bằng AbortController
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_MS || 10000);
+                const resp = await fetch(cfg.url, { credentials: 'include', headers: { 'Accept': 'application/json' }, signal: controller.signal });
+                clearTimeout(timeout);
                 if (!resp.ok) {
                     console.warn('API not OK for item', id, resp.status);
+                    // Gửi lỗi về popup
+                    chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [`API not OK for item ${id} (${resp.status})`] });
                     newStatus[id] = false;
                     continue;
                 }
@@ -176,8 +182,13 @@ async function performCheckins() {
 
                 const matched = cfg.successValues.some(v => String(v) === String(value));
                 newStatus[id] = !!matched;
+                if (!matched) {
+                    chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [`Check-in failed for item ${id}: unexpected value (${value})`] });
+                }
             } catch (e) {
-                console.error('Error fetching/parsing API for item', id, e);
+                let msg = `Error fetching/parsing API for item ${id}: ${e && e.name === 'AbortError' ? 'Timeout' : e}`;
+                console.error(msg);
+                chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [msg] });
                 newStatus[id] = false;
             }
         }
