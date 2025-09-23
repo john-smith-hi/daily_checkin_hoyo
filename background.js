@@ -162,14 +162,12 @@ async function performCheckins() {
             }
 
             try {
-                // Thêm timeout cho fetch bằng AbortController
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_MS || 10000);
                 const resp = await fetch(cfg.url, { credentials: 'include', headers: { 'Accept': 'application/json' }, signal: controller.signal });
                 clearTimeout(timeout);
                 if (!resp.ok) {
                     console.warn('API not OK for item', id, resp.status);
-                    // Gửi lỗi về popup
                     chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [`API not OK for item ${id} (${resp.status})`] });
                     newStatus[id] = false;
                     continue;
