@@ -8,4 +8,4 @@
 4. Once loaded, the extension icon will appear next to the address bar.
 
 ## Settings
-Change icons you want in icons folder.
+    Change icons you want in icons folder.
