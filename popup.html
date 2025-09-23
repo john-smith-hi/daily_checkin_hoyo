@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Check-in Hoyo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Interface 1: Main Check-in Interface -->
+    <div id="main-interface" class="interface">
+        <div class="header">
+            <h1>Daily Check-in Today Status</h1>
+            <button id="settings-btn" class="settings-btn">⚙️</button>
+        </div>
+        
+        <div class="checkin-list">
+            <div class="checkin-item" data-item="1">
+                <img src="icons/genshin_impact.png" alt="Check-in 1" class="item-image">
+                <span class="item-name">Genshin Impact</span>
+                <span class="status-icon">❌</span>
+            </div>
+            
+            <div class="checkin-item" data-item="2">
+                <img src="icons/honkai_star_rail.png" alt="Check-in 2" class="item-image">
+                <span class="item-name">Honkai Star Rail</span>
+                <span class="status-icon">❌</span>
+            </div>
+            
+            <div class="checkin-item" data-item="3">
+                <img src="icons/zendless_zone_zero.png" alt="Check-in 3" class="item-image">
+                <span class="item-name">Zendless Zone Zero</span>
+                <span class="status-icon">❌</span>
+            </div>
+            
+            <div class="checkin-item" data-item="4">
+                <img src="icons/honkai_impact.png" alt="Check-in 4" class="item-image">
+                <span class="item-name">Honkai Impact 3</span>
+                <span class="status-icon">❌</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface 2: Settings Interface -->
+    <div id="settings-interface" class="interface hidden">
+        <div class="header">
+            <button id="back-btn" class="back-btn">←</button>
+            <h1>Settings</h1>
+        </div>
+        
+        <div class="settings-content">
+            <h2>Choose the games to daily check-in:</h2>
+            <div class="image-selection">
+                <div class="selection-item">
+                    <input type="checkbox" id="item1" data-item="1" checked>
+                    <label for="item1">
+                        <img src="icons/genshin_impact.png" alt="Check-in 1">
+                        <span>Genshin Impact</span>
+                    </label>
+                </div>
+                
+                <div class="selection-item">
+                    <input type="checkbox" id="item2" data-item="2" checked>
+                    <label for="item2">
+                        <img src="icons/honkai_star_rail.png" alt="Check-in 2">
+                        <span>Honkai Star Rail</span>
+                    </label>
+                </div>
+                
+                <div class="selection-item">
+                    <input type="checkbox" id="item3" data-item="3" checked>
+                    <label for="item3">
+                        <img src="icons/zendless_zone_zero.png" alt="Check-in 3">
+                        <span>Zendless Zone Zero</span>
+                    </label>
+                </div>
+                
+                <div class="selection-item">
+                    <input type="checkbox" id="item4" data-item="4" checked>
+                    <label for="item4">
+                        <img src="icons/honkai_impact.png" alt="Check-in 4">
+                        <span>Honkai Impact 3</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for cookie notification -->
+    <div id="cookie-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cookie Required</h2>
+            </div>
+            <div class="modal-body">
+                <p>Please login <a id="redirect_url" href="#" target="_blank">here</a> before use this extension</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+</body>
+</html>
