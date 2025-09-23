@@ -1,0 +1,6 @@
+Trang giao diện 1:
+ + Có 4 hình và dấu check các trạng thái
+Trang giao diện 2:
+ + Chứa 4 hình ở giao diện 1 và có dấu check chọn, chỉ những hình nào ở giao diện 2 check chọn thì ở giao diện 1 mới hiển thị
+Chạy nền : tự động gửi request tới các link theo config.js và setting (giao diện 2) mỗi khi người dùng vừa cài đặt hoặc lúc người dùng vừa mở trình duyệt lên, ko cần lặp lại, chỉ làm đúng lúc ng dùng mở trình duyệt
+Tối ưu hiệu năng, giảm số lần truy vấn tới link ít nhất có thể mà vẫn đảm bảo chức năng

@@ -97,6 +97,21 @@ function notifyPopup(cookieExists) {
     }
 }
 
+// Safe sendMessage wrapper that swallows errors when no receiver exists
+function safeSendMessage(message) {
+    try {
+        chrome.runtime.sendMessage(message, () => {
+            if (chrome.runtime.lastError) {
+                // Ignore: common when popup isn't open or no listener is registered
+                // console.debug('safeSendMessage ignored error', chrome.runtime.lastError.message);
+            }
+        });
+    } catch (e) {
+        // In some environments sendMessage can throw; ignore to avoid uncaught rejection
+        // console.debug('safeSendMessage threw', e);
+    }
+}
+
 /**
  * Build configuration for each check-in item (1..4)
  * @param {string|number} itemId
@@ -106,26 +121,33 @@ function buildItemConfig(itemId) {
     switch (String(itemId)) {
         case '1':
             return {
-                url: CONFIG.GENSHIN_IMPACT_URL_API_CHECKIN || '',
-                variableName: CONFIG.GENSHIN_IMPACT_VARIABLE_NAME || '',
+                url: CONFIG.GENSHIN_IMPACT_URL_API_CHECKIN,
+                method: CONFIG.GENSHIN_IMPACT_METHOD,
+                actId: CONFIG.GENSHIN_IMPACT_ACT_ID,
+                variableName: CONFIG.GENSHIN_IMPACT_VARIABLE_NAME,
                 successValues: [CONFIG.GENSHIN_IMPACT_VARIABLE_VALUE_SUCCESS, CONFIG.GENSHIN_IMPACT_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
             };
         case '2':
             return {
-                url: CONFIG.HONKAI_STAR_RAIL_URL_API_CHECKIN || '',
-                variableName: CONFIG.HONKAI_STAR_RAIL_VARIABLE_NAME || '',
+                url: CONFIG.HONKAI_STAR_RAIL_URL_API_CHECKIN,
+                method: CONFIG.HONKAI_STAR_RAIL_METHOD,
+                variableName: CONFIG.HONKAI_STAR_RAIL_VARIABLE_NAME,
                 successValues: [CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_SUCCESS, CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
             };
         case '3':
             return {
-                url: CONFIG.ZENDLESS_ZONE_ZERO_URL_API_CHECKIN || '',
-                variableName: CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_NAME || '',
+                url: CONFIG.ZENDLESS_ZONE_ZERO_URL_API_CHECKIN,
+                method: CONFIG.ZENDLESS_ZONE_ZERO_METHOD,
+                actId: CONFIG.ZENDLESS_ZONE_ZERO_ACT_ID,
+                variableName: CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_NAME,
                 successValues: [CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_VALUE_SUCCESS, CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
             };
         case '4':
             return {
-                url: CONFIG.HONKAI_IMPACT_URL_API_CHECKIN || '',
-                variableName: CONFIG.HONKAI_IMPACT_VARIABLE_NAME || '',
+                url: CONFIG.HONKAI_IMPACT_URL_API_CHECKIN,
+                method: CONFIG.HONKAI_IMPACT_METHOD,
+                actId: CONFIG.HONKAI_IMPACT_ACT_ID,
+                variableName: CONFIG.HONKAI_IMPACT_VARIABLE_NAME,
                 successValues: [CONFIG.HONKAI_IMPACT_VARIABLE_VALUE_SUCCESS, CONFIG.HONKAI_IMPACT_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
             };
         default:
@@ -146,7 +168,6 @@ async function performCheckins() {
 
         for (let i = 1; i <= 4; i++) {
             const id = String(i);
-
             // If item is disabled in settings, set status to false
             if (enabledItems[id] === false) {
                 newStatus[id] = false;
@@ -164,15 +185,27 @@ async function performCheckins() {
             try {
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_MS || 10000);
-                const resp = await fetch(cfg.url, { credentials: 'include', headers: { 'Accept': 'application/json' }, signal: controller.signal });
-                clearTimeout(timeout);
-                if (!resp.ok) {
-                    console.warn('API not OK for item', id, resp.status);
-                    chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [`API not OK for item ${id} (${resp.status})`] });
-                    newStatus[id] = false;
-                    continue;
+                // Build fetch options: only add Content-Type/body for POST
+                const headers = {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Content-Type': 'application/json;charset=UTF-8',
+                };
+                const options = {
+                    method: cfg.method,
+                    credentials: 'include',
+                    headers,
+                    signal: controller.signal
+                };
+                if (String(cfg.method).toUpperCase() === 'POST' && cfg.actId) {
+                    options.body = JSON.stringify({ act_id: cfg.actId });
                 }
+
+                // Debug: show which item is being attempted and whether it's enabled
+                console.debug(`performCheckins: item=${id} method=${cfg.method} url=${cfg.url} actId=${cfg.actId}`);
+                const resp = await fetch(cfg.url, options);
+                clearTimeout(timeout);
                 const data = await resp.json();
+                console.log(`Check-in item ${id} response:`, data);
 
                 // Get value from response, supports nested path
                 let value = getNestedValue(data, cfg.variableName);
@@ -181,12 +214,12 @@ async function performCheckins() {
                 const matched = cfg.successValues.some(v => String(v) === String(value));
                 newStatus[id] = !!matched;
                 if (!matched) {
-                    chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [`Check-in failed for item ${id}: unexpected value (${value})`] });
+                    safeSendMessage({ type: 'CHECKIN_ERROR', errors: [`Check-in failed for item ${id}: unexpected value (${value})`] });
                 }
             } catch (e) {
                 let msg = `Error fetching/parsing API for item ${id}: ${e && e.name === 'AbortError' ? 'Timeout' : e}`;
                 console.error(msg);
-                chrome.runtime.sendMessage({ type: 'CHECKIN_ERROR', errors: [msg] });
+                safeSendMessage({ type: 'CHECKIN_ERROR', errors: [msg] });
                 newStatus[id] = false;
             }
         }
@@ -222,31 +255,38 @@ function performCheckAndNotify() {
     });
 }
 
-/**
- * Schedule a periodic alarm for cookie checking (Manifest V3)
- */
-function scheduleAlarm() {
-    const minutes = Math.max(1, Math.round((CONFIG.CHECK_INTERVAL || 5 * 60 * 1000) / 60000));
-    try {
-        chrome.alarms.create('cookieCheck', { periodInMinutes: minutes });
-        console.log('Alarm scheduled every', minutes, 'minute(s)');
-    } catch (e) {
-        console.error('Failed to create alarm', e);
-    }
-}
-
-// Alarm event listener
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm && alarm.name === 'cookieCheck') performCheckAndNotify();
-});
+// No alarm listeners: avoid periodic background checks
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'CHECK_COOKIE') {
         checkCookieExists().then(result => {
-            sendResponse({ success: true, cookieExists: result.exists, cookie: result.cookie });
+            const response = { success: true, cookieExists: result.exists, cookie: result.cookie };
+            sendResponse(response);
+            // Also send as a separate message for the listener in popup
+            try {
+                chrome.runtime.sendMessage({ 
+                    type: 'COOKIE_CHECK_RESPONSE', 
+                    success: true, 
+                    cookieExists: result.exists, 
+                    cookie: result.cookie 
+                });
+            } catch (e) {
+                // Popup may not be open, ignore error
+            }
         }).catch(error => {
-            sendResponse({ success: false, error: String(error) });
+            const response = { success: false, error: String(error) };
+            sendResponse(response);
+            // Also send as a separate message for the listener in popup
+            try {
+                chrome.runtime.sendMessage({ 
+                    type: 'COOKIE_CHECK_RESPONSE', 
+                    success: false, 
+                    error: String(error) 
+                });
+            } catch (e) {
+                // Popup may not be open, ignore error
+            }
         });
         return true;
     }
@@ -261,10 +301,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Initialize on install and startup
-chrome.runtime.onInstalled.addListener(() => { scheduleAlarm(); performCheckAndNotify(); });
-chrome.runtime.onStartup.addListener(() => { scheduleAlarm(); performCheckAndNotify(); });
+function init() {
+    storageSet({ checkinStatus: { '1': false, '2': false, '3': false, '4': false } });
+    // Run a single check when extension is installed or browser starts
+    performCheckAndNotify();
+}
 
-// Run on first service worker load
-scheduleAlarm();
-performCheckAndNotify();
+// Initialize on install and startup
+chrome.runtime.onInstalled.addListener(init);
+chrome.runtime.onStartup.addListener(init);

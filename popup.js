@@ -10,7 +10,32 @@ const selectionCheckboxes = document.querySelectorAll('input[type="checkbox"]');
 
 // Modal elements for cookie warning
 const cookieModal = document.getElementById('cookie-modal');
-const redirectUrl = document.getElementById('redirect_url');
+const redirectUrl = document.getElementById('redirect-url');
+
+/**
+ * Send message to background script with retry mechanism and error handling
+ * @param {Object} message - Message to send
+ * @param {number} retries - Number of retry attempts (default: 3)
+ * @param {number} delay - Delay between retries in ms (default: 500)
+ */
+function sendMessageWithRetry(message, retries = 3, delay = 500) {
+    const attemptSend = (attemptNumber) => {
+        chrome.runtime.sendMessage(message, (response) => {
+            if (chrome.runtime.lastError) {
+                console.log(`Message send attempt ${attemptNumber} failed:`, chrome.runtime.lastError.message);
+                if (attemptNumber < retries) {
+                    setTimeout(() => attemptSend(attemptNumber + 1), delay);
+                } else {
+                    console.log('All message send attempts failed. Background script may not be ready.');
+                }
+            } else {
+                console.log('Message sent successfully on attempt', attemptNumber);
+            }
+        });
+    };
+    // Start with a small delay to ensure background script is ready
+    setTimeout(() => attemptSend(1), 100);
+}
 
 // Initialize UI and event listeners on DOM ready
 // Loads settings, sets up listeners, updates UI, and checks cookie
@@ -149,13 +174,19 @@ function setStatusIcon(statusIconEl, isSuccess) {
  * Check for cookie existence on popup load and show modal if missing
  */
 function checkCookieOnLoad() {
-    chrome.runtime.sendMessage({ type: 'CHECK_COOKIE' }, (response) => {
-        if (response && response.success) {
-            if (!response.cookieExists) showModal();
-        } else {
-            console.log('CHECK_COOKIE response:', response);
+    sendMessageWithRetry({ type: 'CHECK_COOKIE' }, 2, 300);
+    
+    // Set up a separate listener for the response since sendMessageWithRetry doesn't return response
+    const checkCookieListener = (request, sender, sendResponse) => {
+        if (request.type === 'COOKIE_CHECK_RESPONSE') {
+            if (request.success && !request.cookieExists) {
+                showModal();
+            }
+            chrome.runtime.onMessage.removeListener(checkCookieListener);
         }
-    });
+    };
+    
+    chrome.runtime.onMessage.addListener(checkCookieListener);
 }
 
 /**
