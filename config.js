@@ -8,9 +8,6 @@ export const CONFIG = {
     
     // Redirect URL when cookie doesn't exist
     REDIRECT_URL: 'https://www.hoyolab.com/home',
-    
-    // Check interval in milliseconds (5 minutes)
-    CHECK_INTERVAL: 5 * 60 * 1000,
 
     // per-request fetch timeout in milliseconds
     FETCH_TIMEOUT_MS: 8000,
