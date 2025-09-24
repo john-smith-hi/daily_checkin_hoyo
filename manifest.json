@@ -10,8 +10,7 @@
     "alarms"
   ],
   "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "https://*.hoyolab.com/*"
   ],
   "background": {
     "service_worker": "background.js",

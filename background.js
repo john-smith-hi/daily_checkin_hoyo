@@ -303,8 +303,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function init() {
+    // reset all check-in status to failed
     storageSet({ checkinStatus: { '1': false, '2': false, '3': false, '4': false } });
-    // Run a single check when extension is installed or browser starts
     performCheckAndNotify();
 }
 
