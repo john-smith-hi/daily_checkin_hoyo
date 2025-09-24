@@ -123,6 +123,7 @@ function buildItemConfig(itemId) {
             return {
                 url: CONFIG.GENSHIN_IMPACT_URL_API_CHECKIN,
                 method: CONFIG.GENSHIN_IMPACT_METHOD,
+                xRpcSigngame: CONFIG.GENSHIN_IMPACT_X_RPC_SIGNGAME,
                 actId: CONFIG.GENSHIN_IMPACT_ACT_ID,
                 variableName: CONFIG.GENSHIN_IMPACT_VARIABLE_NAME,
                 successValues: [CONFIG.GENSHIN_IMPACT_VARIABLE_VALUE_SUCCESS, CONFIG.GENSHIN_IMPACT_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
@@ -131,6 +132,7 @@ function buildItemConfig(itemId) {
             return {
                 url: CONFIG.HONKAI_STAR_RAIL_URL_API_CHECKIN,
                 method: CONFIG.HONKAI_STAR_RAIL_METHOD,
+                xRpcSigngame: CONFIG.HONKAI_STAR_RAIL_X_RPC_SIGNGAME,
                 actId: CONFIG.HONKAI_STAR_RAIL_ACT_ID,
                 variableName: CONFIG.HONKAI_STAR_RAIL_VARIABLE_NAME,
                 successValues: [CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_SUCCESS, CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
@@ -139,6 +141,7 @@ function buildItemConfig(itemId) {
             return {
                 url: CONFIG.ZENDLESS_ZONE_ZERO_URL_API_CHECKIN,
                 method: CONFIG.ZENDLESS_ZONE_ZERO_METHOD,
+                xRpcSigngame: CONFIG.ZENDLESS_ZONE_ZERO_X_RPC_SIGNGAME,
                 actId: CONFIG.ZENDLESS_ZONE_ZERO_ACT_ID,
                 variableName: CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_NAME,
                 successValues: [CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_VALUE_SUCCESS, CONFIG.ZENDLESS_ZONE_ZERO_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
@@ -147,6 +150,7 @@ function buildItemConfig(itemId) {
             return {
                 url: CONFIG.HONKAI_IMPACT_URL_API_CHECKIN,
                 method: CONFIG.HONKAI_IMPACT_METHOD,
+                xRpcSigngame: CONFIG.HONKAI_IMPACT_X_RPC_SIGNGAME,
                 actId: CONFIG.HONKAI_IMPACT_ACT_ID,
                 variableName: CONFIG.HONKAI_IMPACT_VARIABLE_NAME,
                 successValues: [CONFIG.HONKAI_IMPACT_VARIABLE_VALUE_SUCCESS, CONFIG.HONKAI_IMPACT_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
@@ -190,6 +194,7 @@ async function performCheckins() {
                 const headers = {
                     'Accept': 'application/json, text/plain, */*',
                     'Content-Type': 'application/json;charset=UTF-8',
+                    'X-Rpc-SignGame': cfg.xRpcSigngame,
                 };
                 const options = {
                     method: cfg.method,
