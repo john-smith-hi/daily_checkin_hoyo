@@ -131,6 +131,7 @@ function buildItemConfig(itemId) {
             return {
                 url: CONFIG.HONKAI_STAR_RAIL_URL_API_CHECKIN,
                 method: CONFIG.HONKAI_STAR_RAIL_METHOD,
+                actId: CONFIG.HONKAI_STAR_RAIL_ACT_ID,
                 variableName: CONFIG.HONKAI_STAR_RAIL_VARIABLE_NAME,
                 successValues: [CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_SUCCESS, CONFIG.HONKAI_STAR_RAIL_VARIABLE_VALUE_CHECKED].filter(v => v !== '')
             };
