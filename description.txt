@@ -1,6 +1,10 @@
-Trang giao diện 1:
- + Có 4 hình và dấu check các trạng thái
-Trang giao diện 2:
- + Chứa 4 hình ở giao diện 1 và có dấu check chọn, chỉ những hình nào ở giao diện 2 check chọn thì ở giao diện 1 mới hiển thị
-Chạy nền : tự động gửi request tới các link theo config.js và setting (giao diện 2) mỗi khi người dùng vừa cài đặt hoặc lúc người dùng vừa mở trình duyệt lên, ko cần lặp lại, chỉ làm đúng lúc ng dùng mở trình duyệt
-Tối ưu hiệu năng, giảm số lần truy vấn tới link ít nhất có thể mà vẫn đảm bảo chức năng
+Interface Page 1:
+* Contains 4 images with check marks indicating their statuses.
+
+Interface Page 2:
+* Includes the 4 images from Page 1 along with checkboxes.
+* Only the images that are checked on Page 2 will be displayed on Page 1.
+
+Background operation:
+* Automatically sends requests to the links defined in `config.js` and the settings (from Page 2) **only** when the user **installs the extension** or **opens the browser**, without repeating.
+* Optimize performance by **minimizing the number of requests** while still maintaining functionality.
