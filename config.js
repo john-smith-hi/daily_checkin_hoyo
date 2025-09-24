@@ -22,7 +22,7 @@ export const CONFIG = {
     GENSHIN_IMPACT_VARIABLE_VALUE_SUCCESS: 0,
     GENSHIN_IMPACT_VARIABLE_VALUE_CHECKED: -5003,
 
-    HONKAI_STAR_RAIL_URL_API_CHECKIN: 'https://sg-public-api.hoyolab.com/event/luna/hkrpg/os/sign',
+    HONKAI_STAR_RAIL_URL_API_CHECKIN: 'https://sg-public-api.hoyolab.com/event/luna/hkrpg/os/sign?lang=vi-vn',
     HONKAI_STAR_RAIL_METHOD: 'POST',
     HONKAI_STAR_RAIL_ACT_ID: 'e202303301540311',
     HONKAI_STAR_RAIL_VARIABLE_NAME: 'retcode',
